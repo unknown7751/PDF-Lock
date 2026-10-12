@@ -1,0 +1,8 @@
+# Runtime dependencies. Versions are pinned to releases verified with this project.
+fastapi==0.143.0
+uvicorn[standard]==0.54.0
+python-multipart==0.0.32
+pydantic==2.12.5
+pydantic-settings==2.15.0
+# pikepdf bundles qpdf. 9.11.x is a long-established release (bundles qpdf 12.2).
+pikepdf==9.11.0

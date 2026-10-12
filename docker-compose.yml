@@ -1,0 +1,33 @@
+# PDFLock — frontend (nginx) on :8080, backend (FastAPI) internal only.
+#   docker compose up --build
+services:
+  backend:
+    build: ./backend
+    restart: unless-stopped
+    environment:
+      PDFLOCK_MAX_FILE_SIZE_MB: ${PDFLOCK_MAX_FILE_SIZE_MB:-50}
+      PDFLOCK_MAX_TOTAL_SIZE_MB: ${PDFLOCK_MAX_TOTAL_SIZE_MB:-200}
+      PDFLOCK_MAX_FILES: ${PDFLOCK_MAX_FILES:-20}
+      PDFLOCK_MAX_PAGES: ${PDFLOCK_MAX_PAGES:-2000}
+      PDFLOCK_JOB_TTL_SECONDS: ${PDFLOCK_JOB_TTL_SECONDS:-900}
+      PDFLOCK_PROCESSING_TIMEOUT_SECONDS: ${PDFLOCK_PROCESSING_TIMEOUT_SECONDS:-120}
+      PDFLOCK_MAX_CONCURRENCY: ${PDFLOCK_MAX_CONCURRENCY:-3}
+      # The browser talks to nginx (same origin), so CORS only matters if you expose the API elsewhere.
+      PDFLOCK_CORS_ORIGINS: ${PDFLOCK_CORS_ORIGINS:-http://localhost:8080}
+    # Temporary job files live in RAM and vanish when the container stops.
+    tmpfs:
+      - /tmp/pdflock-jobs:size=1g,mode=0700,uid=10001,gid=10001
+    read_only: true
+    cap_drop: [ALL]
+    security_opt: ["no-new-privileges:true"]
+    expose: ["8000"]
+
+  frontend:
+    build: ./frontend
+    restart: unless-stopped
+    depends_on: [backend]
+    ports:
+      - "8080:80"
+    read_only: true
+    tmpfs: [/var/cache/nginx, /var/run, /tmp]
+    security_opt: ["no-new-privileges:true"]
